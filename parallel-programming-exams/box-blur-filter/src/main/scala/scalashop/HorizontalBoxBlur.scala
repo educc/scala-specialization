@@ -1,6 +1,7 @@
 package scalashop
 
 import org.scalameter.*
+import scalashop.VerticalBoxBlur.blur
 
 object HorizontalBoxBlurRunner:
 
@@ -37,10 +38,17 @@ object HorizontalBoxBlur extends HorizontalBoxBlurInterface:
    *
    *  Within each row, `blur` traverses the pixels by going from left to right.
    */
-  def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit =
-  // TODO implement this method using the `boxBlurKernel` method
+  def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
+    val horizontalRange = (0 until src.width)
+    def blurRow(y: Int): Unit = {
+      horizontalRange.foreach { x =>
+        val pixel = boxBlurKernel(src, x, y, radius)
+        dst.update(x, y, pixel)
+      }
+    }
 
-  ???
+    (from until end).foreach(blurRow)
+  }
 
   /** Blurs the rows of the source image in parallel using `numTasks` tasks.
    *
@@ -49,7 +57,18 @@ object HorizontalBoxBlur extends HorizontalBoxBlurInterface:
    *  rows.
    */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit =
-  // TODO implement using the `task` construct and the `blur` method
+    val max = src.height
+    val ntasks = max / numTasks
+    val slides = if (ntasks == 0) 1 else ntasks
+    val lst = (0 to max by slides)
+    val lstTail = LazyList.from(0, slides)
 
-  ???
+    lst.zip(lstTail.tail)
+      .map(it => (it._1, Math.min(it._2, max)))
+      .filter(_._1 == max)
+      .foreach { (top, bottom) =>
+        task {
+          blur(src, dst, top, bottom, radius)
+        }
+      }
 

@@ -57,14 +57,16 @@ object VerticalBoxBlur extends VerticalBoxBlurInterface:
    *  columns.
    */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
-    require(numTasks >= 1)
-    require(numTasks <= src.width)
+    val max = src.width
+    val ntasks = max / numTasks
+    val slides = if (ntasks == 0) 1 else ntasks
+    val lst = (0 to max by slides)
+    val lstTail = LazyList.from(0, slides)
 
-    val slides = src.width / numTasks
-    val lst = (0 to src.width by slides)
-    lst.zip(lst.tail)
+    lst.zip(lstTail.tail)
+      .map(it => (it._1, Math.min(it._2, max)))
+      .filter(_._1 == max)
       .foreach { (left, right) =>
-        println(s"left=$left right=$right")
         task {
           blur(src, dst, left, right, radius)
         }

@@ -48,22 +48,22 @@ def boxBlurKernel(src: Img, x: Int, y: Int, radius: Int): RGBA = {
   val rightX = clampImageWidth(x + radius)
   val rightY = clampImageHeight(y + radius)
 
-  var i = leftX
+  var newY = leftY
   var counter = 0
   var (redAcc, greenAcc, blueAcc, alphaAcc) = (0,0,0,0)
-  while(i <= rightX) {
-    var j = leftY
-    while (j <= rightY) {
-      val pixel = src(i, j)
+  while(newY <= rightY) {
+    var newX = leftX
+    while (newX <= rightX) {
+      val pixel = src(newX, newY)
       redAcc = redAcc + red(pixel)
       greenAcc = greenAcc + green(pixel)
       blueAcc = blueAcc + blue(pixel)
       alphaAcc = alphaAcc + alpha(pixel)
 
       counter = counter + 1
-      j = j + 1
+      newX = newX + 1
     }
-    i = i + 1
+    newY = newY + 1
   }
   rgba(redAcc/counter, greenAcc/counter, blueAcc/counter, alphaAcc/counter)
 }
