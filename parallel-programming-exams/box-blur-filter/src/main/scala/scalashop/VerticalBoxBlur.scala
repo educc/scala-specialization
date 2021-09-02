@@ -61,11 +61,8 @@ object VerticalBoxBlur extends VerticalBoxBlurInterface:
     val ntasks = max / numTasks
     val slides = if (ntasks == 0) 1 else ntasks
     val lst = (0 to max by slides)
-    val lstTail = LazyList.from(0, slides)
 
-    lst.zip(lstTail.tail)
-      .map(it => (it._1, Math.min(it._2, max)))
-      .filter(_._1 == max)
+    lst.zip(lst.tail)
       .foreach { (left, right) =>
         task {
           blur(src, dst, left, right, radius)
